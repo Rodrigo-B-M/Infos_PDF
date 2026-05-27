@@ -1,0 +1,69 @@
+import pdfplumber
+import re
+
+def extrair_dados(lista):
+    """
+    Recebe uma lista com endereços de arquivos.
+    Para cada arquivo, realiza a leitura do conteúdo e extrai
+    informações específicas. Em seguida, monta um dicionário com 
+    os dados extraídos e adiciona esse dicionário em uma nova lista.
+    """
+    resumo_contratos = []
+    for contrato in lista:
+        texto = ler_pdf(contrato)
+        resumo = {"numero": capturar_numero(texto), "tipo": capturar_tipo(texto), "cfop": capturar_cfop(texto)}
+        resumo_contratos.append(resumo)
+    return resumo_contratos
+
+def ler_pdf(endereço):
+    """
+    Recebe o endereço de um arquivo PDF e, se o conteúdo for lido corretamente, extrai o texto para uma variável
+    """
+    texto_completo =""
+    with pdfplumber.open(endereço) as pdf:
+        for pagina in pdf.pages:
+            texto = pagina.extract_text()
+            if texto:
+                texto_completo += texto + "\n"
+    return texto_completo
+
+def capturar_numero(texto):
+    """
+    Recebe um texto e procura pelo numero do contrato, dois formatos pré-definidos
+    """
+    padrao_1 = r"Nº do Contrato\s+(.+)"
+    numero = re.search(padrao_1, texto)
+    if numero:
+        return numero.group(1)
+    padrao_2 = r"CONFIRMAÇÃO DE NEGÓCIO - NÚMERO\s+(.+)"
+    numero = re.search(padrao_2, texto)
+    if numero:
+        return numero.group(1)
+  
+def capturar_tipo(texto):
+    """
+    Recebe um texto e procura o tipo do contrato, dois formatos pré-definidos.
+    """
+    padrao_tipo = r"2\.10\s+TIPO DO CONTRATO:\s+(.+)"
+    tipo = re.search(padrao_tipo, texto)
+    if tipo:
+        return tipo.group(1)
+    padrao_tipo2 = r"Tipo do Contrato:\s+(.+)"
+    tipo = re.search(padrao_tipo2, texto)
+    if tipo:
+        return tipo.group(1)
+
+def capturar_cfop(texto):
+    """
+    Recebe um texto e procura por um padrão pré-definido, caso não encontre retorna "Não disponível".
+    """
+    padrao_cfop = r"2\.11\s+CFOP:\s+(.+)"
+    cfop = re.search(padrao_cfop, texto)
+    if cfop:
+        return cfop.group(1)
+    else:
+        return "Não disponível"
+
+
+
+
