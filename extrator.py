@@ -1,19 +1,24 @@
 import pdfplumber
 import re
 
-def extrair_dados(lista):
+def extrair_dados(lista, tipo_documento):
     """
     Recebe uma lista com endereços de arquivos.
     Para cada arquivo, realiza a leitura do conteúdo e extrai
     informações específicas. Em seguida, monta um dicionário com 
     os dados extraídos e adiciona esse dicionário em uma nova lista.
     """
-    resumo_contratos = []
-    for contrato in lista:
-        texto = ler_pdf(contrato)
-        resumo = {"numero": capturar_numero(texto), "tipo": capturar_tipo(texto), "cfop": capturar_cfop(texto)}
-        resumo_contratos.append(resumo)
-    return resumo_contratos
+    resumo_arquivos = []
+    for arquivo in lista:
+        print(f"Lendo arquivo:{arquivo}")
+        texto = ler_pdf(arquivo)
+        if tipo_documento == 1:            
+            resumo = {"numero": capturar_numero(texto, tipo_documento), "tipo": capturar_tipo(texto), "cfop": capturar_cfop(texto)}
+            resumo_arquivos.append(resumo)
+        elif tipo_documento == 2:
+            resumo = {"numero": capturar_numero(texto, tipo_documento), "produto": capturar_produtos(texto)}
+            resumo_arquivos.append(resumo)
+    return resumo_arquivos
 
 def ler_pdf(endereço):
     """
@@ -27,17 +32,22 @@ def ler_pdf(endereço):
                 texto_completo += texto + "\n"
     return texto_completo
 
-def capturar_numero(texto):
+def capturar_numero(texto, tipo_documento):
     """
-    Recebe um texto e procura pelo numero do contrato, dois formatos pré-definidos
+    Recebe um texto e procura pelo numero do contrato com dois formatos pré-definidos, ou pelo numero da nota.
     """
-    padrao_1 = r"Nº do Contrato\s+(.+)"
-    numero = re.search(padrao_1, texto)
-    if numero:
-        return numero.group(1)
-    padrao_2 = r"CONFIRMAÇÃO DE NEGÓCIO - NÚMERO\s+(.+)"
-    numero = re.search(padrao_2, texto)
-    if numero:
+    if tipo_documento == 1:
+        padrao_1 = r"Nº do Contrato\s+(.+)"
+        numero = re.search(padrao_1, texto)
+        if numero:
+            return numero.group(1)
+        padrao_2 = r"CONFIRMAÇÃO DE NEGÓCIO - NÚMERO\s+(.+)"
+        numero = re.search(padrao_2, texto)
+        if numero:
+            return numero.group(1)
+    elif tipo_documento == 2:
+        padrao_1 = r"Nº\s+(.+)"
+        numero = re.search(padrao_1, texto)
         return numero.group(1)
   
 def capturar_tipo(texto):
@@ -64,6 +74,16 @@ def capturar_cfop(texto):
     else:
         return "Não disponível"
 
+def capturar_produtos(texto):
+    """
+    Recebe um texto e procura pela descrição do produto, retorna todas as ocorrências que sigam o padrão pré-definido
+    """
+    padrao_produto = r"\d{4}-[A-Za-z]+(.+)"
+    produto = re.search(padrao_produto, texto)
+    if produto:
+        return produto.group()
+    else:
+        return "Fora do padrão!"
 
 
 
