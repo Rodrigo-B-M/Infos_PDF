@@ -17,7 +17,6 @@ def selecionar_pasta():
     """
     Abre uma janela para o usuario selecionar uma pasta
     """
-    print("Selecione o local dos arquivos:")
     local = filedialog.askdirectory()
     return local
 
@@ -33,7 +32,7 @@ def montar_arquivos(local,tipo_documento):
         endereco = os.path.normpath(os.path.join(local, arquivo))
         if tipo_documento == 1 and "confirmação".lower() in arquivo.lower():
             lista_arquivos.append(endereco)
-        elif tipo_documento == 2:
+        elif tipo_documento == 2 and arquivo.lower().endswith(".pdf"):
             lista_arquivos.append(endereco)
     return lista_arquivos
 
@@ -43,9 +42,7 @@ def exportar_excel(dados):
     Converte os dados em um DataFrame, solicita ao usuário o local onde o arquivo será salvo e exporta o resultado em formato XLSX.
     """
     df = pd.DataFrame(dados)
-    print("Selecione o local para salvar os resultados:")
     local_salvar = selecionar_pasta()
     caminho = str(local_salvar) + "/Resultado.xlsx"
     df.to_excel(caminho, index=False)
-    print("Encerrando!")
-    
+

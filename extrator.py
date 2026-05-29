@@ -48,7 +48,10 @@ def capturar_numero(texto, tipo_documento):
     elif tipo_documento == 2:
         padrao_1 = r"Nº\s+(.+)"
         numero = re.search(padrao_1, texto)
-        return numero.group(1)
+        if numero:
+            return numero.group(1)
+        else:
+            return "Fora do padrão!"
   
 def capturar_tipo(texto):
     """
